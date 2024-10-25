@@ -1,16 +1,6 @@
 use std::ops::Mul;
+use crate::numrs_optimize::root_finding::{get_tolerance, RootFindingTolerance};
 
-pub enum RootFindingTolerance {
-    Empty,
-    Is(f64)
-}
-
-fn get_tolerance(tol: &RootFindingTolerance) -> f64 {
-    match tol {
-        RootFindingTolerance::Empty => 0.0,
-        RootFindingTolerance::Is(value) => *value,
-    }
-}
 
 pub fn bisection<F>(f: F, mut a: f64, mut b: f64, tol: RootFindingTolerance) -> Result<f64, &'static str>
 where
@@ -20,9 +10,9 @@ where
         Err::<f64, &str>("f(a) and f(b) need to be opposite signs!").expect("Invalid arguments");
     }
 
-    let tol_value = get_tolerance(&tol);
+    let tolerance = get_tolerance(&tol);
 
-    while (a - b).abs() > 2.0 * tol_value {
+    while (a - b).abs() > 2.0 * tolerance {
         let m = (a + b) / 2.0;
         if f(m) == 0.0 {
             return Ok(m);
