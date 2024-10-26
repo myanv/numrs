@@ -7,8 +7,7 @@ impl Deref for Vector {
     type Target = Vec<f64>;
     fn deref(&self) -> &Self::Target { &self.data }
 }
-
-// Allow comparisons between a Vector and [1, 2, 3], [1.0, 2.0, 3.0] etc.
+// Allow comparisons between a Vector and integer/floating-point arrays
 impl<const N: usize> PartialEq<[i32; N]> for Vector {
     fn eq(&self, other: &[i32; N]) -> bool {
         self.data.len() == N && self.data.iter().zip(other.iter())
@@ -18,6 +17,17 @@ impl<const N: usize> PartialEq<[i32; N]> for Vector {
 impl<const N: usize> PartialEq<[f64; N]> for Vector {
     fn eq(&self, other: &[f64; N]) -> bool {
         self.data.len() == N && self.data.iter().zip(other.iter()).all(|(a, &b)| (*a - b).abs() < f64::EPSILON)
+    }
+}
+// Allow comparisons between a Vector and Rust's Vec<...>
+impl PartialEq<Vec<i32>> for Vector {
+    fn eq(&self, other: &Vec<i32>) -> bool {
+        self.data.iter().zip(other.iter()).all(|(a, &b)| *a == b as f64)
+    }
+}
+impl PartialEq<Vec<f64>> for Vector {
+    fn eq(&self, other: &Vec<f64>) -> bool {
+        self.data.iter().zip(other.iter()).all(|(a, b)| (*a - *b).abs() < f64::EPSILON)
     }
 }
 
@@ -65,10 +75,25 @@ mod tests {
     use crate::vector::vector::Vector;
 
     #[test]
-    fn test_vector() {
+    fn test_vector_array_equality() {
         let x = Vector::new([1, 2, 3]);
         assert_eq!( x, [1, 2, 3]);
-        assert_eq!( x, vec![1, 2, 3]);
         assert_eq!( x, [1.0, 2.0, 3.0]);
+    }
+    #[test]
+    fn test_vector_vec_equality() {
+        let x = Vector::new([1, 2, 3]);
+        assert_eq!(x, vec![1, 2, 3]);
+        assert_eq!( x, vec![1.0, 2.0, 3.0]);
+    }
+    #[test]
+    fn test_vector_scalar_power() {
+        let x = Vector::new([1, 2, 3]);
+        let y = x.pow(3);
+        assert_eq!( y, [1, 8, 27]);
+        assert_eq!( y, [1.0, 8.0, 27.0]);
+
+        let z = x.pow(0.5);
+        assert_eq!( z, [x[0].sqrt(), x[1].sqrt(), x[2].sqrt()]);
     }
 }
